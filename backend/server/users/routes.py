@@ -21,14 +21,11 @@ users = Blueprint('users', __name__, url_prefix='/api/users')
 def login():
     data = request.get_json()
     user_model = User()
-    print(data.get("username"))
-    result = user_model.login_user(email=data.get("email"), \
-    username= data.get("username"), password = data.get("password"))
+    result = user_model.login_user(parameter=data.get("parameter"), password = data.get("password"))
     if result:
         # store session
-        username = data.get("username")
-        email = data.get("email")
-        user = user_model.get(username=username) or user_model.get(email=email)
+        parameter = data.get("parameter")
+        user = user_model.get(parameter=parameter)
         access_token = create_access_token(identity=user.get("username"))
         return jsonify({"token": access_token}), 200
 
@@ -50,11 +47,14 @@ def current_user():
     return jsonify({"current_user":current_user}), 200
 
 
-@users.route('/<user_id>', methods=['POST', 'GET', 'DELETE'])
+@users.route('/<user_input>', methods=['POST', 'GET', 'DELETE'])
 @jwt_required
-def get_user(user_id):
+def get_user(user_input):
     current_user = get_jwt_identity()
-    user_model = User(user_id=user_id)
+    if bson.ObjectId.is_valid(user_input):
+        user_model = User(user_id=user_input)
+    else:
+        user_model = User()
     try:
         if request.method == "POST":
             data = request.get_json()
@@ -62,7 +62,7 @@ def get_user(user_id):
         elif request.method == 'DELETE':
             user = user_model.remove()
         else:
-            user = user_model.get(user_id=user_id)
+            user = user_model.get(parameter=user_input)
             user.pop("password")
         js = bson.json_util.dumps(user)
         resp = Response(js, status=200, mimetype='application/json')

@@ -22,15 +22,14 @@ def generate_random_user(password=None):
         "username": fake.user_name(),
         "password": password,
         "password_confirmation": password,
-        "first_name": fake.first_name(),
-        "last_name": fake.last_name(),
+        "name": fake.name(),
         "email": fake.safe_email()
         }
 def create_user(user_data=None):
     user_model = User()
     user_data = user_data or generate_random_user()
     user_model.new_user(data=user_data)
-    return user_model.get(email=user_data["email"])
+    return user_model.get(user_data["email"])
 
 def generate_token(username):
     return create_access_token(identity=username)
@@ -96,10 +95,10 @@ class Test_users:
         fake_user = generate_random_user()
         user_id = create_user(fake_user).get("_id")
         token = generate_token(fake_user.get("username"))
-        new_data = {"first_name": "UpdatedFirstName"}
+        new_data = {"name": "NEWNAME"}
         rv = client.post('/api/users/{}'.format(user_id), data=json.dumps(new_data), \
         content_type='application/json', headers={"Authorization":"Bearer {}".format(token)})
-        assert (json.loads(rv.data).get("first_name") == "UpdatedFirstName")
+        assert (json.loads(rv.data).get("name") == "NEWNAME")
 
     def test_remove_user(self, client):
         fake_user = generate_random_user()
@@ -111,7 +110,7 @@ class Test_users:
     def test_login(self, client):
         fake_user = generate_random_user(password="SomeRandomAmount")
         user_id = create_user(fake_user).get("_id")
-        login_data = {"username": fake_user["username"], "password": "SomeRandomAmount"}
+        login_data = {"parameter": fake_user["username"], "password": "SomeRandomAmount"}
         rv = client.post('/api/users/login',data=json.dumps(login_data), content_type='application/json')
         assert(bson.json_util.loads(rv.data).get("token"))
 
