@@ -75,7 +75,7 @@ class User:
     # login user and check if password is correct for user
     def login_user(self, parameter="",password=""):
         user = self.get(parameter=parameter)
-        user_password = user["password"]
+        user_password = user.get("password")
         return self.check_password(user_password, password)
 
     # creating index in mongo db and create field uniqueness
@@ -91,7 +91,7 @@ class User:
         try:
             new_data = self.generate_user_data(data=data)
             result = mongo.db.users.insert_one(new_data)
-            return mongo.db.users.find_one({"_id": bson.ObjectId(result.inserted_id)}, {"password": 0})
+            return {"success": "user created"}
         except pymongo.errors.DuplicateKeyError:
             return {"error": "email or username existed"}
         except ParametersNotMatch:

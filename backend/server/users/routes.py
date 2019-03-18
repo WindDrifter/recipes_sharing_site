@@ -12,7 +12,8 @@ import json
 import bson
 from flask_jwt_extended import (
     jwt_required, create_access_token,
-    get_jwt_identity
+    get_jwt_identity, create_refresh_token, set_access_cookies,
+    unset_jwt_cookies, set_refresh_cookies, get_csrf_token
 )
 
 users = Blueprint('users', __name__, url_prefix='/api/users')
@@ -21,22 +22,29 @@ users = Blueprint('users', __name__, url_prefix='/api/users')
 def login():
     data = request.get_json()
     user_model = User()
-    result = user_model.login_user(parameter=data.get("parameter"), password = data.get("password"))
+    result = user_model.login_user(parameter=data.get("username"), password = data.get("password"))
     if result:
         # store session
-        parameter = data.get("parameter")
+        parameter = data.get("username")
         user = user_model.get(parameter=parameter)
         access_token = create_access_token(identity=user.get("username"))
-        return jsonify({"token": access_token}), 200
+        refresh_token = create_refresh_token(identity=user.get("username"))
+        resp = jsonify({
+        'login': True,
+        'access_csrf': get_csrf_token(access_token),
+        'refresh_csrf': get_csrf_token(refresh_token)})
+        set_access_cookies(resp, access_token)
+        set_refresh_cookies(resp, refresh_token)
+        return resp, 200
 
     return jsonify({"message": "bad username, email or password"}), 400
 
 @users.route('/logout', methods=['POST'])
 @jwt_required
 def logout():
-    # clear session
-    current_user = get_jwt_identity()
-    return ""
+    resp = jsonify({'logout': True})
+    unset_jwt_cookies(resp)
+    return resp, 200
 
 @users.route('/current_user', methods=['GET'])
 @jwt_required
@@ -89,7 +97,7 @@ def register():
         user_model = User()
         user = user_model.new_user(data=data)
 
-        if "username" in user:
+        if "success" in user:
             status_code = 200
         else:
             status_code = 403

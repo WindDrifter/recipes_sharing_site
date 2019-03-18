@@ -6,7 +6,7 @@ from flask import Blueprint, render_template, abort
     # create and configure the app
 from .database import mongo
 from .server.users import routes as user_router
-# from .server.posts import routes as post_router
+# from .server.posts import routes as posts_router
 jwt = None
 def create_app(test_config=None, testing=False):
     # create and configure the app
@@ -17,13 +17,18 @@ def create_app(test_config=None, testing=False):
     )
     # change this to using enviroment variable
     app.config['JWT_SECRET_KEY'] = "puddi"
+    # uncomment after core feature is done
+    app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+    app.config['JWT_COOKIE_SECURE'] = True
+    app.config['JWT_COOKIE_CSRF_PROTECT'] = True
+    app.config['JWT_ACCESS_COOKIE_PATH'] = '/api/'
     if test_config is None and not testing:
         # load the instance config, if it exists, when not testing
         app.config["MONGO_URI"] = "mongodb://localhost:27017/recetteApp"
         app.config.from_pyfile('config.py', silent=True)
     else:
         # load the test config if passed in
-        app.config["MONGO_URI"] = "mongodb://localhost:27017/recetteApp"
+        app.config["MONGO_URI"] = "mongodb://localhost:27017/recetteAppTest"
         if test_config:
             app.config.from_mapping(test_config)
     # ensure the instance folder exists
@@ -32,7 +37,7 @@ def create_app(test_config=None, testing=False):
     except OSError:
         pass
     app.register_blueprint(user_router.users)
-    # app.register_blueprint(post_router.posts)
+    # app.register_blueprint(posts_router.posts)
 
     @app.route('/<path:page>')
     def fallback(page):
