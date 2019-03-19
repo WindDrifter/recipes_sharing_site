@@ -1,26 +1,29 @@
 import React, { Component } from 'react';
+import {BrowserRouter as Router, Route, Link} from 'react-router-dom';
 import logo from './logo.svg';
-import './App.css';
+import './stylesheets/App.scss';
+import Register from "./MainComponents/register";
+import Home from "./MainComponents/home";
+import FooterComponent from "./MainComponents/footer-component";
+import About from "./MainComponents/about";
+import Login from "./MainComponents/login";
 
+import HeaderComponent from "./MainComponents/header-component";
+// Make FooterComponent stays next the ending dif with className app
 class App extends Component {
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
+      <Router>
+        <div className="App">
+          <HeaderComponent />
+          <Route exact={true} path='/' component={Home} />
+          <Route path='/register' component={Register} />
+          <Route path='/about' component={About} />
+          <Route path='/login' component={Login} />
+
+          <FooterComponent />
+        </div>
+      </Router>
     );
   }
 }

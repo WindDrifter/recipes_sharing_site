@@ -1,0 +1,16 @@
+@import "App.scss";
+
+.form-element{
+  @extend .col-12;
+  @extend .col-sm-12;
+  @extend .col-md-8;
+  @extend .col-lg-6;
+  @extend .col-xl-6;
+}
+.form-label{
+  text-align: left;
+}
+
+.form-combined{
+  @extend .justify-content-center;
+}
