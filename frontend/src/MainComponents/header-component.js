@@ -1,10 +1,19 @@
 import React, { useState, useEffect, useReducer } from 'react';
 import PropTypes from "prop-types";
 import { NavLink } from 'react-router-dom';
-import {loginInitialState, loginReducer} from "../Reducers/LoginInfo";
-function HeaderComponent(props){
-  const [state, dispatch] = useReducer(loginReducer, loginInitialState);
-  let isLogin = state.login;
+import { connect } from "react-redux";
+import {LOGIN, LOGOUT} from "../constants/action-constants";
+
+function mapDispatchToProps(dispatch) {
+  return {
+    loginuser: ()=> dispatch({ type: LOGIN}),
+    logoutuser: ()=> dispatch({ type: LOGOUT})
+  };
+}
+const mapStateToProps = state => {
+  return { login: state.login };
+};
+function HeaderConnect(props){
   function switchToDark(){
   // TODO: add function to add dark class
 
@@ -12,45 +21,48 @@ function HeaderComponent(props){
   }
   function loginuser(){
     // use later
-    let token =0;
     // localStorage.setItem('access_csrf_token', access_csrf_token);77
-    dispatch({ type: 'login' });
   }
   function logoutuser(event){
     event.preventDefault();
     let access_csrf_token = sessionStorage.getItem("access_csrf_token");
-    let refresh_csrf_token =  sessionStorage.getItem("refresh_csrf_token");
-  //   fetch("/api/users/logout", {
-  //   method: "POST",
-  //   headers:{
-  //     'Accept': 'application/json',
-  //     'Content-Type': 'application/json'
-  //   }
-  // }).then(res => res.json()).then(response => onSetResult(response, false))
-  //   .catch(error => console.error('Error:', error));
-    dispatch({ type: 'logout' });
+    // let refresh_csrf_token =  sessionStorage.getItem("refresh_csrf_token");
+
+    fetch("/api/users/logout", {
+    method: "POST",
+    headers:{
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      "X-CSRF-TOKEN": access_csrf_token
+    }
+  }).then(res => res.json()).then(response => onSetResult(response, false))
+    .catch(error => console.error('Error:', error));
   }
   function onSetResult(response, login){
-    if(login){dispatch({ type: 'login' });}
+    if(login){
+      props.loginuser();
+
+    }
     else{
-    dispatch({ type: 'logout' });}
+      props.logoutuser();
+      sessionStorage.clear();
+    }
 
   }
   const notLoginComponent = (<><li className="nav-item"><NavLink className="nav-link" to="/register">Register</NavLink></li>
   <li className="nav-item"><NavLink className="nav-link" to="/login">Login</NavLink></li></>);
 
-  const LoggedinComponent = (<><li><NavLink className="nav-link" to="/">Items</NavLink></li>
+  const loggedinComponent = (<><li><NavLink className="nav-link" to="/">Posts</NavLink></li>
   <li><a className="nav-link" onClick={logoutuser}>Logout</a> </li>
 
   </>);
-
   return (
     <header className="App-header">
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
       <ul className="navbar-nav nav mr-auto">
         <li className="nav-item"><NavLink className="nav-link" to="/">Home</NavLink></li>
         <li className="nav-item"><NavLink className="nav-link" to="/about">About</NavLink></li>
-        {isLogin ? LoggedinComponent :notLoginComponent}
+        { props.login ? loggedinComponent :notLoginComponent}
 
         <li><form></form> </li>
       </ul>
@@ -60,4 +72,5 @@ function HeaderComponent(props){
   );
 
 }
+const HeaderComponent = connect(mapStateToProps, mapDispatchToProps)(HeaderConnect);
 export default HeaderComponent;

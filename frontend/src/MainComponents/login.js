@@ -1,22 +1,27 @@
-import React, { useState, useReducer } from 'react';
-import PropTypes from "prop-types";
+import React, { useState } from 'react';
 import {withRouter} from "react-router";
 import "../stylesheets/register.scss";
-import {loginInitialState, loginReducer} from "../Reducers/LoginInfo";
-function Login(props) {
-  // Declare a new state variable, which we'll call "count"
-  const [state, dispatch] = useReducer(loginReducer, loginInitialState);
+import { connect } from "react-redux";
+import {LOGIN, LOGOUT} from "../constants/action-constants";
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+function mapDispatchToProps(dispatch) {
+  return {
+    loginuser: ()=> dispatch({ type: LOGIN}),
+    logoutuser: ()=> dispatch({ type: LOGOUT})
+  };
+}
+const mapStateToProps = state => {
+  return { login: state.login };
+};
+function LoginForm(props) {
+  // Declare a new state variable, which we'll call "count"
   const [username, setUsername] = useState("");
   const [password, setPassword]= useState("");
-  const [passwordConfirmation, setPasswordConfirmation]= useState("");
   function handleSubmit(event){
     event.preventDefault();
 
     let send_data = {username: username,
-                     password: password, password_confirmation: passwordConfirmation};
+                     password: password};
     fetch("/api/users/login", {
     method: "POST",
     body: JSON.stringify(send_data),
@@ -31,6 +36,7 @@ function Login(props) {
     sessionStorage.setItem("access_csrf_token", result.access_csrf_token);
     sessionStorage.setItem("refresh_csrf_token", result.refresh_csrf_token);
     sessionStorage.setItem("login", result.login);
+    props.loginuser();
     props.history.push("/");
   }
 
@@ -60,4 +66,6 @@ function Login(props) {
     </div>
   );
 }
-export default Login;
+const LoginComponent = connect(mapStateToProps, mapDispatchToProps)(LoginForm);
+
+export default LoginComponent;
